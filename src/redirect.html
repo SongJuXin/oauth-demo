@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <script src="./tailwind-plugin.js"></script>
+
+
+</head>
+<body>
+
+</body>
+</html>
+<script>
+  const code = window.location.search.match(/code=(\w+)/)[1];
+  fetch(`/token?code=${code}`).then(res=>res.json()).then(res=>{
+    if(!res.error){
+      sessionStorage.setItem('github_token',res.access_token);
+    }
+    console.log(res)
+    window.location.href='/';
+  }).catch(err=>{
+    console.log('err',err)
+  })
+</script>

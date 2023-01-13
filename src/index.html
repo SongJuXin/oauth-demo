@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <script src="./tailwind-plugin.js"></script>
+</head>
+<body>
+<section id="auth">
+  <a class="btn btn-blue"
+     href="https://openapi.baidu.com/oauth/2.0/authorize?response_type	=code&client_id=k5ZnBP5OMjjyP6EF6GMhcSsY&redirect_uri=http://10.1.0.10:9892/baidu-redirect.html"
+     id="baidu-auth">去 baidu 授权</a>
+  <a class="btn btn-blue" href="https://github.com/login/oauth/authorize?client_id=5b5a9e18aec27e44c560&scope=user repo"
+     id="github-auth">去github授权</a>
+</section>
+<span id="user-wrap" class="fixed top-0  right-0">
+    <span id="no-login">未登录</span>
+    <button class="btn btn-blue hidden" id="logout">退出</button>
+  <span id="user"></span>
+</span>
+<main>
+</main>
+
+
+</body>
+</html>
+<script>
+  const $user = document.querySelector('#user');
+  const $noLogin = document.querySelector('#no-login');
+  const githubToken = window.sessionStorage.getItem('github_token');
+  const baiudToken = window.sessionStorage.getItem('baiud_token');
+  const $main = document.querySelector('main');
+  const $logout = document.querySelector('#logout');
+  const $auth = document.querySelector('#auth');
+  $logout.onclick = function () {
+    window.sessionStorage.clear()
+    location.reload()
+  }
+  main()
+
+  async function main() {
+    let info
+    if (githubToken) {
+      const res = await fetch('https://api.github.com/user', {
+        headers: {
+          Authorization: `Bearer ${githubToken}`
+        }
+      }).then(res => res.json())
+      const username = res.login;
+      const avatar = res.avatar_url;
+      info = {source: 'github', username, avatar, data: res}
+    }
+    if (!info && baiudToken) {
+      const res = await fetch(`/baidu-info?access_token=${baiudToken}`).then(response => response.json())
+      const username = res.username;
+      const avatar = res.avatar_url;
+      info = {source: 'baidu', username, avatar, data: res}
+      console.log('res', res)
+    }
+    console.log('info', info)
+
+    if (!info) {
+      return
+    }
+    $auth.classList.add('hidden')
+    $user.innerHTML = `<img class="inline-block h-12 w-12 rounded-full" src="${info.avatar}"> ${info.username}`;
+    $logout.classList.remove('hidden');
+    $noLogin.classList.add('hidden');
+    $main.innerHTML = `<h2 class="text-5xl">source:${info.source}</h2><pre>${JSON.stringify(info.data, null, 2)}</pre>`;
+  }
+
+
+</script>
